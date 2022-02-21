@@ -12,7 +12,7 @@ inputs:
 runs:
   using: 'composite'
   steps:
-  - run: '$GITHUB_ACTION_PATH/install.sh'
+  - run: 'chmod a+x $GITHUB_ACTION_PATH/install.sh && $GITHUB_ACTION_PATH/install.sh'
     shell: bash
     env:
       KTLINT_VERSION: ${{ inputs.ktlint_version }} 
