@@ -16,7 +16,11 @@ runs:
     shell: bash
     env:
       KTLINT_VERSION: ${{ inputs.ktlint_version }} 
-  - run: 'ktlint --reporter=checkstyle'
+  - run: 'ktlint --reporter=checkstyle,output=report.xml'
+    shell: bash
+  - run: |
+      ls -al
+      pwd
     shell: bash
 branding:
   icon: 'check'
