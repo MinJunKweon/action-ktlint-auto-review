@@ -1,0 +1,23 @@
+name: 'Run ktlint and auto review'
+description: 'Run ktlint for reviews'
+author: 'minz.kweon@gmail.com'
+inputs:
+  ktlint_version:
+    description: "To use ktlint version ('latest' or '0.44.0')"
+    required: false
+    default: 'latest'
+  github_token:
+    description: 'Github Token to create a review'
+    required: true
+runs:
+  using: 'composite'
+  steps:
+  - run: '$GITHUB_ACTION_PATH/install.sh'
+    shell: bash
+    env:
+      KTLINT_VERSION: ${{ inputs.ktlint_version }} 
+  - run: 'ktlint --reporter=checkstyle'
+    shell: bash
+branding:
+  icon: 'check'
+  color: 'purple'
