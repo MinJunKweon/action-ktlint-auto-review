@@ -23,3 +23,4 @@ fi
 ktlint --reporter=json,output=report.json --verbose || true
 
 # Step 3. run nodejs
+node index.js
