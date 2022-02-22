@@ -10,16 +10,11 @@ inputs:
     description: 'Github Token to create a review'
     required: true
 runs:
-  using: 'composite'
-  steps:
-  - run: 'chmod a+x $GITHUB_ACTION_PATH/install.sh && $GITHUB_ACTION_PATH/install.sh'
-    shell: bash
-    env:
-      KTLINT_VERSION: ${{ inputs.ktlint_version }}
-  - run: 'ktlint --reporter=json,output=report.json --verbose || true'
-    shell: bash
-  - run: 'cat report.json'
-    shell: bash
+  using: 'docker'
+  image: 'Dockerfile'
+  args:
+    - ${{ inputs.ktlint_version }}
+    - ${{ inputs.github_token }}
 branding:
   icon: 'check'
   color: 'purple'

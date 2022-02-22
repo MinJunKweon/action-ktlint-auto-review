@@ -1,0 +1,22 @@
+{
+    "name": "action-ktlint-auto-review",
+    "version": "1.0.0",
+    "private": true,
+    "description": "Automatically code review with ktlint result for pull request",
+    "main": "index.js",
+    "repository": {
+      "type": "git",
+      "url": "git+https://github.com/MinJunKweon/action-ktlint-auto-review.git"
+    },
+    "keywords": [
+      "actions",
+      "ktlint",
+      "auto-review"
+    ],
+    "author": "MinJunKweon",
+    "license": "MIT",
+    "dependencies": {
+      "@actions/core": "^1.6.0",
+      "@actions/github": "^5.0.0"
+    }
+}
