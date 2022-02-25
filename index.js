@@ -41,6 +41,20 @@ const fetchChangedKotlinFiles = async (octokit) => {
 
 const extractFilenames = (files) => files.map((file) => file.filename)
 
+const extractDiffs = (files) => {
+    const diffs = {};
+    for (const idx in files) {
+        const file = files[idx];
+        diffs[file.filename] = file.patch.split('\n')
+            .filter((line) => line.startsWith('@'))
+            .map((chunkHeader) => {
+                const result = chunkHeader.match(/\+([0-9]+),([0-9]+)/)
+                return { startLine: parseInt(result[1]), endLine: parseInt(result[2]) };
+            });
+    }
+    return diffs;
+}
+
 const runKtlint = async (filenames) => {
     const workspace = process.env.GITHUB_WORKSPACE;
     const filepaths = filenames.map((filename) => workspace.concat('/', filename));
@@ -90,10 +104,22 @@ const createReviewComment = (filename, violation) => {
     };
 }
 
-const postGithubReview = async (octokit, results) => {
+const isInDiff = (diffs, line) => {
+    for (const idx in diffs) {
+        const diff = diffs[idx];
+        if (diff.startLine <= line && diff.endLine >= line) {
+            return true;
+        }
+    }
+    return false;
+}
+
+const postGithubReview = async (octokit, diffs, results) => {
     const reviewComments = results.flatMap(result => {
         const filename = result.file;
-        return result.errors.map(violation => createReviewComment(filename, violation))
+        return result.errors
+            .filter(violation => isInDiff(diffs[filename], violation.line))
+            .map(violation => createReviewComment(filename, violation))
     })
 
     await octokit.rest.pulls.createReview({
@@ -122,9 +148,10 @@ const main = async () => {
         return;
     } catch (err) {
         const results = readLintResults();
+        const diffs = extractDiffs(ktFiles);
         printResult(results);
         try {
-            await postGithubReview(octokit, results);
+            await postGithubReview(octokit, diffs, results);
             console.log('Succeed to post Github PR Review');
         } catch (err) {
             console.log('Failed to post Github PR Review.');
