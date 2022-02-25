@@ -30,10 +30,16 @@ const fetchChangedKotlinFiles = async (octokit) => {
     console.log(files);
     console.log('::endgroup::');
 
-    const filenames = files.map((file) => file.filename)
+    const ktFiles = files
+        .filter((file) => {
+            const filename = file.filename;
+            return filename.endsWith('.kt') || filename.endsWith('.kts');
+        });
 
-    return filenames
+    return ktFiles
 }
+
+const extractFilenames = (files) => files.map((file) => file.filename)
 
 const runKtlint = async (filenames) => {
     const workspace = process.env.GITHUB_WORKSPACE;
@@ -75,12 +81,13 @@ const printResult = (result) => {
 }
 
 const createReviewComment = (filename, violation) => {
-    const comment = `:warning: **${violation.rule}**\n\n${violation.message}`
+    const rule = violation.rule || 'INVALID KOTLIN FILE';
+    const comment = `:warning: **${rule}**\n\n${violation.message}`;
     return {
         path: filename,
         body: comment,
         line: violation.line,
-    }
+    };
 }
 
 const postGithubReview = async (octokit, results) => {
@@ -93,7 +100,7 @@ const postGithubReview = async (octokit, results) => {
         owner: context.owner,
         repo: context.repo,
         pull_number: context.pullRequestNo,
-        body: `:hammer: **[ktlint]** There are ${reviewComments.length} Violations`,
+        body: `:hammer: **[ktlint]** There are ${reviewComments.length} violations`,
         event: 'REQUEST_CHANGES',
         comments: reviewComments,
     });
@@ -103,8 +110,8 @@ const main = async () => {
     const token = core.getInput('github_token') || process.env.INPUT_GITHUB_TOKEN;
     const octokit = github.getOctokit(token);
 
-
-    const filenames = await fetchChangedKotlinFiles(octokit);
+    const ktFiles = await fetchChangedKotlinFiles(octokit);
+    const filenames = extractFilenames(ktFiles);
 
     console.log("::group::Lint Files");
     filenames.map((filename) => console.log(filename));
